@@ -95,6 +95,21 @@ async fn source() -> Response {
     ([(header::CONTENT_TYPE, "text/plain; charset=utf-8")], board_append::SOURCE).into_response()
 }
 
+/// The page may be served from another origin (ce-net.com) than the door: allow it, and only it,
+/// to call the api. `ONE_ACTION_ORIGIN` names it (default https://ce-net.com).
+async fn cors(req: axum::extract::Request, next: axum::middleware::Next) -> Response {
+    let allowed = std::env::var("ONE_ACTION_ORIGIN").unwrap_or_else(|_| "https://ce-net.com".into());
+    let ok = req.headers().get(header::ORIGIN).and_then(|o| o.to_str().ok()) == Some(allowed.as_str());
+    let mut r = if req.method() == axum::http::Method::OPTIONS { StatusCode::NO_CONTENT.into_response() } else { next.run(req).await };
+    if ok {
+        let h = r.headers_mut();
+        h.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, allowed.parse().unwrap());
+        h.insert(header::ACCESS_CONTROL_ALLOW_METHODS, "GET, POST".parse().unwrap());
+        h.insert(header::ACCESS_CONTROL_ALLOW_HEADERS, "content-type".parse().unwrap());
+    }
+    r
+}
+
 async fn health() -> Response {
     Json(json!({ "ok": true, "version": env!("CARGO_PKG_VERSION"), "build": board_append::build_id() })).into_response()
 }
@@ -133,6 +148,7 @@ async fn main() {
         .route("/api/prepare", post(prepare))
         .route("/api/finish", post(finish))
         .route("/api/source/board", get(source))
+        .layer(axum::middleware::from_fn(cors))
         .with_state(s);
     let l = tokio::net::TcpListener::bind(&addr).await.unwrap_or_else(|e| {
         eprintln!("one-action-door: bind {addr}: {e}");
