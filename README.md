@@ -19,11 +19,10 @@ The one allowed append lands on the board together with the chain's fingerprint 
 
 ## Run it in under 5 minutes
 
-You need Rust 1.85 or newer, and the open capability crate `ce-net-proto` cloned next to this repo.
+You need Rust 1.85 or newer. The open capability crate [`ce-net-proto`](https://github.com/ce-net/ce-net-proto) comes in as a pinned git dependency.
 
 ```sh
 git clone https://github.com/ce-net/demo-one-pinned-action
-git clone https://github.com/Leif-Rydenfalk/ce-net-proto      # cap v3 + verifier, path dependency ../ce-net-proto
 cd demo-one-pinned-action
 cargo test --release                                          # the whole story as one test: 1 allowed, every widening refused
 cargo run --release -p one-action-door -- serve --addr 127.0.0.1:7811 --data ./data

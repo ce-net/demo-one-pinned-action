@@ -147,6 +147,7 @@ dependencies = [
 [[package]]
 name = "ce-net-proto"
 version = "0.1.0"
+source = "git+https://github.com/ce-net/ce-net-proto?rev=ff449250618cc70bde491055cb97e8ef42121390#ff449250618cc70bde491055cb97e8ef42121390"
 dependencies = [
  "bincode",
  "ed25519-dalek",
