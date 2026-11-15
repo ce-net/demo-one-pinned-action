@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One Pinned Action</title>
+<meta name="description" content="A key that can do exactly one thing. Try to widen it; the verifier refuses each attempt live and shows the policy line that refused it.">
+<meta name="theme-color" content="#070807">
+<!-- ce-api: where the demo door answers; empty = this origin -->
+<meta name="ce-api" content="">
+<style>/* ce-design tokens.css + components.css (inlined) */
+/* ce-design tokens: the Twinton observatory look, the ce-net standard for every page and screen.
+   Source: maps.ce-net.com (repo maps-ce-net, site/index.html, commits a8165d8 227617e f4930e9 a638396).
+   Leif approved it as the standard 2026-10-25 12:34 CST. Dark is the default; light only by the person's switch
+   (data-theme="light", remembered in localStorage "ce-theme"). Same variable names as the old ce-design sheet,
+   so pages that already use them pick up the new look; maps-style aliases (--bg --dim --faint --f --disp) included. */
+@font-face{font-family:Geist;font-weight:100 900;font-display:swap;
+  src:url(https://ce-net.com/assets/fonts/g-geist-v5-gyByhwUxId8gMEwcGFU.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-weight:400 600;font-display:swap;
+  src:url(https://ce-net.com/assets/fonts/g-jetbrainsmono-v24-tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"),
+      url(https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2")}
+@font-face{font-family:Michroma;font-weight:400;font-display:swap;
+  src:url(fonts/michroma.woff2) format("woff2"),
+      url(https://fonts.gstatic.com/s/michroma/v21/PN_zRfy9qWD8fEagAPg9pTk.woff2) format("woff2")}
+
+:root{color-scheme:dark;
+  /* neutrals: the black stage (dark, the default) */
+  --ground:#070807;--surface:#0d0f0d;--well:#141614;--raise:#1c1f1c;
+  --panel:rgba(10,12,10,.78);              /* glass card fill, always with --blur */
+  --ink:#f2f3ef;--ink-2:#8a8f87;--ink-3:#5d625b;
+  --line:rgba(255,255,255,.10);--line-2:rgba(255,255,255,.14);
+  --hover:rgba(255,255,255,.04);--press:rgba(255,255,255,.08);
+  /* one accent: Twinton amber */
+  --acc:#f5a524;--acc-hi:#ffc35a;--acc-ink:#130d00;--acc-soft:rgba(245,165,36,.14);
+  /* states (never decoration). --live is the green dot / good / saved */
+  --live:#9bd16b;--ok:#9bd16b;--warn:#ffc35a;--bad:#ef4444;
+  /* the stage: kept for pages that used it; it is now the ground itself */
+  --stage:#070807;--stage-2:#0d0f0d;--stage-ink:#f2f3ef;--stage-ink-2:#8a8f87;--stage-line:rgba(255,255,255,.10);
+  /* type: Michroma display, Geist body, JetBrains Mono labels and figures */
+  --cjk:"PingFang SC","HarmonyOS Sans SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --sans:Geist,Inter,system-ui,-apple-system,var(--cjk),sans-serif;
+  --mono:"JetBrains Mono","Geist Mono",ui-monospace,SFMono-Regular,Menlo,var(--cjk),monospace;
+  --disp:Michroma,Orbitron,system-ui,var(--cjk),sans-serif;
+  --t-2xs:9.5px;--t-xs:10.5px;--t-sm:12px;--t-md:13px;--t-base:15px;--t-lg:clamp(15px,1.4vw,17px);
+  --t-num:21px;--t-xl:clamp(19px,2.4vw,27px);--t-2xl:clamp(26px,3.4vw,40px);--t-3xl:clamp(32px,4.4vw,56px);
+  --track-label:.12em;--track-crumb:.18em;--track-disp:.06em;
+  /* space: 4 px base */
+  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:24px;--s-6:32px;--s-7:48px;--s-8:72px;
+  --m:clamp(16px,3vw,40px);--max:1120px;--rail:64px;
+  /* shape: square, technical. Cards 3 px, buttons and pills 2 px */
+  --r:3px;--r-sm:2px;--r-pill:2px;--tick:8px;
+  --blur:blur(10px);
+  --edge:0 0 0 1px var(--line);--lift:0 18px 40px -18px rgba(0,0,0,.8);
+  /* motion: values tick up, cards fade in 150 ms, nothing bounces */
+  --ease:cubic-bezier(.2,.7,.1,1);--fast:.15s;--mid:.25s;--slow:.6s;
+  /* maps.ce-net.com aliases */
+  --bg:var(--ground);--s1:var(--surface);--s2:var(--well);--s3:var(--raise);
+  --dim:var(--ink-2);--faint:var(--ink-3);--f:var(--sans)}
+
+:root[data-theme="light"]{color-scheme:light;
+  --ground:#f2f2ee;--surface:#ffffff;--well:#e8e8e3;--raise:#f7f7f4;
+  --panel:rgba(255,255,255,.82);
+  --ink:#0d0f0d;--ink-2:#5d625b;--ink-3:#8a8f87;
+  --line:rgba(13,15,13,.12);--line-2:rgba(13,15,13,.2);
+  --hover:rgba(13,15,13,.04);--press:rgba(13,15,13,.07);
+  --acc:#b8730a;--acc-hi:#d98a10;--acc-ink:#ffffff;--acc-soft:rgba(184,115,10,.12);
+  --live:#3f8f2a;--ok:#3f8f2a;--warn:#b8730a;--bad:#dc2626;
+  --lift:0 18px 40px -22px rgba(13,15,13,.25)}
+
+/* ce-design components: the Twinton observatory pieces, lifted from maps.ce-net.com (site/index.html #obs, .tw-card,
+   .tw-ring, #rail, #live, #clock, header .tools, #liveline). Load after tokens.css. Every class is token driven, so the
+   light switch (data-theme="light") works without extra rules. */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 var(--t-base)/1.5 var(--sans);
+  -webkit-font-smoothing:antialiased;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:1px solid var(--acc);outline-offset:2px}
+
+/* glass: near-black card over the stage, hairline border, square corners */
+.glass{position:relative;background:var(--panel);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:1px solid var(--line);border-radius:var(--r)}
+
+/* ticks: amber L-marks on the top-left and bottom-right corners of a featured card */
+.ticks::before,.ticks::after{content:"";position:absolute;width:var(--tick);height:var(--tick);border:1px solid var(--acc);pointer-events:none}
+.ticks::before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.ticks::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+
+/* crumb: TWINTON / WORLD / LIVE, current level in amber */
+.crumb{font:500 10px var(--mono);letter-spacing:var(--track-crumb);color:var(--ink-2);text-transform:uppercase}
+.crumb b{color:var(--acc);font-weight:500}
+
+/* display: the wide caps headline with a full stop (PLANET OBSERVATORY.) */
+.display{margin:6px 0 12px;font:400 var(--t-xl)/1.15 var(--disp);letter-spacing:var(--track-disp);text-transform:uppercase;color:var(--ink)}
+.display.lg{font-size:var(--t-2xl)}.display.xl{font-size:var(--t-3xl)}
+.display.over{text-shadow:0 2px 18px rgba(0,0,0,.7)}  /* when it floats over imagery */
+:root[data-theme="light"] .display.over,:root[data-theme="light"] .headline{text-shadow:none}
+
+/* headline: the top-centre title over the stage (THE WORLD'S LOGISTICS, LIVE) + a mono readout line */
+.headline{text-align:center}
+.headline b{display:block;font:400 15px/1.3 var(--disp);letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+.headline span{font:400 11px var(--mono);letter-spacing:.04em;color:var(--ink-2)}
+
+/* label: small caps over a number; the dot is amber, .g green */
+.label{font:500 var(--t-2xs) var(--sans);letter-spacing:var(--track-label);text-transform:uppercase;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.label i{width:6px;height:6px;border-radius:50%;background:var(--acc);flex:none}
+.label i.g{background:var(--live)}.label i.r{background:var(--bad)}
+
+/* stat card: label, big mono figure (amber for the hero), muted unit, faint mono sub line */
+.stat{padding:10px 11px 9px}
+.num{margin-top:6px;font:500 var(--t-num)/1 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.num.acc{color:var(--acc)}
+.num small{font-size:10px;color:var(--ink-2);margin-left:4px;font-weight:400}
+.sub{margin-top:5px;font:400 10px var(--mono);color:var(--ink-3)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.stat.has-ring{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:6px}
+.stat.has-ring>div{min-width:0}
+
+/* ring: 34 px gauge. r=15, circumference 94.25; set stroke-dashoffset = 94.25 * (1 - value) */
+.ring{width:34px;height:34px;transform:rotate(-90deg);flex:none}
+.ring circle{fill:none;stroke-width:3}
+.ring .bg{stroke:var(--line)}
+.ring .fg{stroke:var(--acc);stroke-linecap:butt;transition:stroke-dashoffset .6s ease-out}
+.ring.g .fg{stroke:var(--live)}
+
+/* pills: segmented time range (Now / 24 hours / 7 days / 30 days); selected = lighter fill + amber underline */
+.pills{display:inline-flex;gap:0;border:1px solid var(--line);background:var(--panel);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-radius:var(--r);padding:2px}
+.pills button{background:none;border:0;color:var(--ink-2);font:500 10.5px var(--mono);letter-spacing:.08em;padding:6px 10px;border-radius:var(--r-sm);cursor:pointer}
+.pills button:hover{color:var(--ink)}
+.pills button[aria-pressed=true]{background:var(--press);color:var(--ink);box-shadow:inset 0 -1px 0 var(--acc)}
+
+/* rail: left icon nav (Overview / Layers / Twins / Cells); active = lighter fill + 2 px amber bar on the left edge */
+.rail{position:fixed;left:0;top:56px;bottom:56px;width:var(--rail);display:flex;flex-direction:column;gap:2px;padding:8px 6px;
+  background:var(--panel);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--line);border-left:0;border-radius:0 var(--r) var(--r) 0;z-index:20}
+.rail button,.rail a{display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;border-radius:var(--r-sm);color:var(--ink-2);
+  padding:9px 2px;cursor:pointer;font:500 8.5px var(--sans);letter-spacing:var(--track-label);text-transform:uppercase;text-decoration:none;position:relative}
+.rail svg{width:17px;height:17px}
+.rail button:hover,.rail a:hover{color:var(--ink);background:var(--hover)}
+.rail [aria-pressed=true],.rail [aria-current=page]{color:var(--ink);background:var(--press)}
+.rail [aria-pressed=true]::before,.rail [aria-current=page]::before{content:"";position:absolute;left:-6px;top:8px;bottom:8px;width:2px;background:var(--acc)}
+.rail.static{position:sticky;top:0;height:100dvh;border-radius:0}
+@media (max-width:600px){
+  .rail{top:auto;bottom:0;left:0;right:0;width:auto;height:54px;flex-direction:row;justify-content:space-around;
+    padding:4px 8px calc(4px + env(safe-area-inset-bottom));border:0;border-top:1px solid var(--line);border-radius:0}
+  .rail button,.rail a{flex:1;padding:6px 2px}
+  .rail [aria-pressed=true]::before,.rail [aria-current=page]::before{left:20%;right:20%;top:-4px;bottom:auto;width:auto;height:2px}
+  .rail.static{position:fixed;height:54px}}
+
+/* btn: top-right caps buttons in one glass group (ADD YOUR TWIN, CELLS 5) */
+.btns{display:flex;gap:2px;padding:3px}
+.btn{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--ink);border:0;border-radius:var(--r-sm);padding:6px 10px;
+  font:500 10.5px var(--sans);letter-spacing:var(--track-label);text-transform:uppercase;text-decoration:none;white-space:nowrap;cursor:pointer;
+  transition:background var(--fast) var(--ease),transform .14s var(--ease)}
+.btn:hover{background:var(--press)}.btn:active{transform:scale(.97)}
+.btn.quiet{color:var(--ink-2)}.btn.quiet:hover{color:var(--ink)}
+.btn.primary{background:var(--acc);color:var(--acc-ink)}
+.btn .cnt{background:var(--acc);color:var(--acc-ink);border-radius:var(--r-sm);padding:0 5px;font:600 10px var(--mono);letter-spacing:0}
+.btn kbd{border:1px solid var(--line-2);border-radius:var(--r-sm);padding:0 4px;font:500 10px var(--mono);color:var(--ink-2)}
+
+/* chips: bottom bar of layers with coloured dots and mono counts; off = grey dot, nodata = faded */
+.chips{display:flex;gap:4px;padding:4px;flex-wrap:nowrap;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;white-space:nowrap;display:flex;align-items:center;gap:6px;background:none;border:0;border-radius:var(--r-sm);
+  color:var(--ink-2);padding:7px 11px;cursor:pointer;font:500 10.5px var(--sans);letter-spacing:var(--track-label);text-transform:uppercase}
+.chips button i{width:7px;height:7px;border-radius:50%;background:var(--ink-2);opacity:.6}
+.chips button small{font:500 10px var(--mono);letter-spacing:0;color:var(--ink-2)}
+.chips button.on{color:var(--ink);background:var(--press)}
+.chips button.on i{background:var(--acc);opacity:1}
+.chips button.on i.g{background:var(--live)}
+.chips button.nodata{opacity:.45}
+
+/* scrub: timeline card. Step buttons, amber mono clock, red LIVE dot, amber range, tick scale */
+.scrub{display:flex;flex-direction:column;gap:2px;padding:6px 8px 4px;width:min(480px,100%)}
+.scrub .row{display:flex;align-items:center;gap:2px}
+.scrub .k{background:none;border:0;color:var(--ink-2);min-width:30px;height:30px;border-radius:var(--r-sm);cursor:pointer;display:grid;place-items:center;
+  font:500 10.5px var(--sans);letter-spacing:var(--track-label);text-transform:uppercase}
+.scrub .k:hover{background:var(--press);color:var(--ink)}
+.scrub .k svg{width:12px;height:12px;fill:currentColor}
+.scrub .read{flex:1;min-width:0;text-align:center;line-height:1.2}
+.scrub .read b{display:block;font:500 11.5px var(--mono);letter-spacing:-.02em;color:var(--acc);white-space:nowrap}
+.scrub .read small{font:500 9.5px var(--sans);letter-spacing:var(--track-label);text-transform:uppercase;color:var(--ink-2)}
+.scrub .live{display:flex;gap:5px;align-items:center;padding:0 8px}
+.scrub .live i{width:7px;height:7px;border-radius:50%;background:var(--bad);animation:ce-pulse 2s infinite}
+.scrub input[type=range]{width:100%;accent-color:var(--acc);margin:4px 0 0}
+.scrub .scale{display:flex;justify-content:space-between;font:400 9px var(--mono);color:var(--ink-3);padding:0 2px 2px}
+@keyframes ce-pulse{50%{opacity:.35}}
+
+/* zoom: the round-cornered square icon stack on the right edge */
+.zoom{display:flex;flex-direction:column}
+.zoom button{width:30px;height:30px;display:grid;place-items:center;background:none;border:0;color:var(--ink-2);cursor:pointer}
+.zoom button+button{border-top:1px solid var(--line)}
+.zoom button:hover{color:var(--ink);background:var(--hover)}
+
+/* credits: the one-line data source footer */
+.credits{font:400 9.5px var(--sans);color:var(--ink-3)}
+
+.fade-in{animation:ce-in var(--fast) ease-out both}
+@keyframes ce-in{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.fade-in,.scrub .live i{animation:none}.ring .fg{transition:none}}
+
+</style>
+<style>
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:var(--t-md);line-height:1.5}
+.wrap{max-width:var(--max);margin:0 auto;padding:var(--s-5) var(--m) var(--s-8)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:var(--s-3);margin-bottom:var(--s-6)}
+.brandmark{font-family:var(--disp);letter-spacing:var(--track-disp);text-transform:uppercase;color:var(--ink);text-decoration:none;font-size:14px}
+.lede{color:var(--ink-2);max-width:62ch;font-size:var(--t-base);margin:var(--s-3) 0 var(--s-5)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-3)}
+.card{padding:var(--s-4);border-radius:var(--r);position:relative}
+.card h2{font-family:var(--sans);font-size:var(--t-2xs);letter-spacing:var(--track-label);text-transform:uppercase;color:var(--ink-2);margin:0 0 var(--s-3);font-weight:600}
+.full{grid-column:1/-1}
+.row{display:flex;gap:var(--s-2);flex-wrap:wrap;align-items:center}
+input[type=text]{flex:1;min-width:0;background:var(--well);color:var(--ink);border:1px solid var(--line-2);border-radius:var(--r-sm);padding:10px 12px;font:inherit;font-size:var(--t-md);min-height:44px;box-sizing:border-box}
+.kv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;font-family:var(--mono);font-size:var(--t-xs);margin-top:var(--s-3)}
+.kv dt{color:var(--ink-3);text-transform:uppercase;letter-spacing:var(--track-label);font-family:var(--sans);font-size:var(--t-2xs);padding-top:2px}
+.kv dd{margin:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.tries{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--s-2)}
+.try{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--well);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;min-height:64px;cursor:pointer;font:inherit}
+.try b{font-size:var(--t-2xs);letter-spacing:var(--track-label);text-transform:uppercase;font-weight:600}
+.try span{font-size:var(--t-xs);color:var(--ink-2);line-height:1.35}
+.try em{font-style:normal;font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.try:hover{background:var(--hover);border-color:var(--line-2)}
+.try[disabled]{opacity:.45;cursor:not-allowed}
+.try.the-one{border-color:var(--acc)}
+.try.no em{color:var(--bad)}.try.yes em{color:var(--live)}
+.verdict{font-family:var(--mono);font-size:var(--t-sm);padding:10px 12px;border-radius:var(--r-sm);border:1px solid var(--line-2);margin-bottom:var(--s-3);overflow-wrap:anywhere}
+.verdict.no{border-color:var(--bad)}.verdict.yes{border-color:var(--live)}
+.verdict .tag{display:inline-block;font-size:var(--t-2xs);letter-spacing:var(--track-label);text-transform:uppercase;margin-right:8px}
+.verdict.no .tag{color:var(--bad)}.verdict.yes .tag{color:var(--live)}
+.verdict small{display:block;color:var(--ink-2);font-size:var(--t-xs);margin-top:4px}
+.trace{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:var(--t-xs)}
+.trace li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;padding:5px 0;border-top:1px solid var(--line)}
+.trace li:first-child{border-top:0}
+.trace .ok{color:var(--live)}.trace .fail{color:var(--bad)}
+.trace .d{color:var(--ink-2);overflow-wrap:anywhere}
+pre.cal{margin:0;font-family:var(--mono);font-size:11px;line-height:1.6;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 0;overflow:auto;max-height:520px}
+pre.cal span{display:block;padding:0 12px 0 0;white-space:pre}
+pre.cal span::before{content:attr(data-n);display:inline-block;width:30px;margin-right:10px;text-align:right;color:var(--ink-3)}
+pre.cal span.hit{background:rgba(239,68,68,.14);box-shadow:inset 2px 0 0 var(--bad)}
+pre.cal span.pass{background:var(--acc-soft);box-shadow:inset 2px 0 0 var(--acc)}
+.board{list-style:none;margin:0;padding:0}
+.board li{padding:8px 0;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:4px 12px}
+.board li:first-child{border-top:0}
+.board .l{overflow-wrap:anywhere}
+.board .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--ink-3);text-align:right}
+.board li.mine .l{color:var(--acc)}
+.muted{color:var(--ink-2)}.mono{font-family:var(--mono)}
+code{font-family:var(--mono);font-size:var(--t-xs);background:var(--well);padding:1px 5px;border-radius:var(--r-sm);overflow-wrap:anywhere}
+pre.cmd{font-family:var(--mono);font-size:var(--t-xs);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;overflow:auto;margin:var(--s-2) 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.dl{display:flex;gap:var(--s-2);flex-wrap:wrap;margin-top:var(--s-3)}
+.err{color:var(--bad);font-family:var(--mono);font-size:var(--t-xs);margin-top:8px;min-height:1em}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}.wrap{padding:var(--s-4) 16px var(--s-7)}.tries{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brandmark" href="/">ce</a>
+    <nav class="btns glass"><a class="btn quiet" href="/demos/">Demos</a><a class="btn quiet" href="https://github.com/ce-net/demo-one-pinned-action">Source</a><button class="btn" id="theme" type="button" aria-label="Switch light or dark">Light</button></nav>
+  </div>
+  <div class="crumb">ce-net / Demos / <b>One action</b></div>
+  <h1 class="display">One key. One action.</h1>
+  <p class="lede">This page hands you a key that can do exactly one thing: append one line to a public board, on one exact build of the board cell, once, for ten minutes. Try to make it do more. Every refusal below is the verifier's own answer, computed on the server, with the policy line that refused it.</p>
+
+  <div class="grid">
+    <section class="glass ticks card" aria-labelledby="h-key">
+      <h2 id="h-key">1 · Your key</h2>
+      <form class="row" id="mintf">
+        <label for="line" class="sr" hidden>Your line</label>
+        <input type="text" id="line" maxlength="140" placeholder="The one line you want on the board" autocomplete="off" required>
+        <button class="btn primary" id="mintb" type="submit">Get my key</button>
+      </form>
+      <div class="err" id="minterr" role="alert"></div>
+      <dl class="kv" id="keyinfo" hidden>
+        <dt>Chain</dt><dd id="k-fp"></dd>
+        <dt>Your key</dt><dd id="k-holder"></dd>
+        <dt>Line</dt><dd id="k-line"></dd>
+        <dt>Expires</dt><dd id="k-exp"></dd>
+        <dt>Uses left</dt><dd id="k-uses"></dd>
+      </dl>
+      <div class="dl" id="downloads" hidden>
+        <button class="btn quiet" type="button" data-dl="chain">chain.hex</button>
+        <button class="btn quiet" type="button" data-dl="cal">policy.cal</button>
+        <button class="btn quiet" type="button" data-dl="root">root.pub</button>
+      </div>
+    </section>
+
+    <section class="glass card" aria-labelledby="h-board">
+      <h2 id="h-board">The board · <span class="mono" id="b-count">0</span> lines</h2>
+      <ul class="board" id="board"><li><span class="l muted">Loading the board…</span><span class="m"></span></li></ul>
+    </section>
+
+    <section class="glass card full" aria-labelledby="h-try">
+      <h2 id="h-try">2 · Try to widen it</h2>
+      <div class="tries" id="tries">
+        <button class="try the-one" data-a="append" disabled><b>Use it</b><span>Append your line. The one thing it can do.</span><em>needs a key</em></button>
+        <button class="try" data-a="other-op" disabled><b>Other op</b><span>Delete instead of Append.</span><em>needs a key</em></button>
+        <button class="try" data-a="unpinned" disabled><b>Unpinned ref</b><span>Call board.append@1 by name, any build.</span><em>needs a key</em></button>
+        <button class="try" data-a="other-line" disabled><b>Other line</b><span>Append a different line.</span><em>needs a key</em></button>
+        <button class="try" data-a="longer-ttl" disabled><b>Longer TTL</b><span>Hand a friend this key for 30 days.</span><em>needs a key</em></button>
+        <button class="try" data-a="wider" disabled><b>Re-delegate wider</b><span>Hand a friend board.append:*.</span><em>needs a key</em></button>
+        <button class="try" data-a="replay" disabled><b>Replay after use</b><span>Use it a second time.</span><em>use it first</em></button>
+      </div>
+    </section>
+
+    <section class="glass card" aria-labelledby="h-res" id="res">
+      <h2 id="h-res">3 · What the verifier said</h2>
+      <div id="verdict" class="verdict"><span class="tag">waiting</span>Get a key, then press any button above.</div>
+      <ol class="trace" id="trace"></ol>
+    </section>
+
+    <section class="glass card" aria-labelledby="h-cal">
+      <h2 id="h-cal">The policy, as CAL · <span class="mono" id="cal-hit">no clause hit yet</span></h2>
+      <pre class="cal" id="cal" aria-live="polite"><span data-n="1"># Your key's policy appears here.</span></pre>
+    </section>
+
+    <section class="glass card full" aria-labelledby="h-check">
+      <h2 id="h-check">4 · Check it yourself</h2>
+      <p class="muted">Download the chain (or the forged chain from any refused attempt) and the root key, then run the open-source verifier. It needs nothing but these two files: no network, no account.</p>
+<pre class="cmd" id="cmd">git clone https://github.com/ce-net/demo-one-pinned-action
+cd demo-one-pinned-action && cargo run -p cap-inspect -- chain.hex --root "$(cat root.pub)" --now &lt;unix time&gt; --cal</pre>
+    </section>
+  </div>
+</div>
+<script>
+(() => {
+  const API = (document.querySelector('meta[name="ce-api"]')||{}).content || '';
+  const $ = id => document.getElementById(id);
+  const root = document.documentElement;
+  try { if (localStorage.getItem('ce-theme') === 'light') root.dataset.theme = 'light'; } catch (e) {}
+  const themeBtn = $('theme');
+  const syncTheme = () => { themeBtn.textContent = root.dataset.theme === 'light' ? 'Dark' : 'Light'; };
+  syncTheme();
+  themeBtn.onclick = () => { if (root.dataset.theme === 'light') delete root.dataset.theme; else root.dataset.theme = 'light';
+    try { localStorage.setItem('ce-theme', root.dataset.theme || 'dark'); } catch (e) {} syncTheme(); };
+
+  const hex = b => Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+  const unhex = h => new Uint8Array(h.match(/../g).map(x => parseInt(x, 16)));
+  const unb64u = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), c => c.charCodeAt(0));
+  const post = async (p, body) => { const r = await fetch(API + p, {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(body)});
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j; };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+
+  let K = null; // {key (CryptoKey), chain_hex, line, fp, root, cal, not_after, used, last_chain}
+  // The grant travels in the URL fragment, which a browser never sends to a server.
+  async function keyFromSeed(seed) {
+    const pk8 = new Uint8Array([...unhex('302e020100300506032b657004220420'), ...seed]);
+    return crypto.subtle.importKey('pkcs8', pk8, {name: 'Ed25519'}, false, ['sign']);
+  }
+  async function sign(bytes) { return hex(new Uint8Array(await crypto.subtle.sign({name: 'Ed25519'}, K.key, bytes))); }
+
+  function renderCal(cal, hitLine, cls) {
+    const lines = cal.source.replace(/\n$/, '').split('\n');
+    $('cal').innerHTML = lines.map((l, i) => `<span data-n="${i + 1}"${i + 1 === hitLine ? ` class="${cls}"` : ''}>${esc(l) || ' '}</span>`).join('');
+    if (hitLine) { const el = $('cal').children[hitLine - 1]; el && el.scrollIntoView({block: 'nearest'}); }
+  }
+  function fmtLeft() {
+    if (!K) return;
+    const left = K.not_after - Math.floor(Date.now() / 1000);
+    $('k-exp').textContent = left > 0 ? `in ${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')} (${new Date(K.not_after * 1000).toISOString().replace('.000', '')})` : 'expired';
+  }
+  setInterval(fmtLeft, 1000);
+
+  function enableTries() {
+    document.querySelectorAll('.try').forEach(b => {
+      const a = b.dataset.a;
+      b.disabled = !K || (a === 'replay' && !K.used);
+      if (!b.classList.contains('yes') && !b.classList.contains('no')) b.querySelector('em').textContent = b.disabled ? (a === 'replay' ? 'use it first' : 'needs a key') : 'try it';
+    });
+  }
+
+  $('mintf').onsubmit = async ev => {
+    ev.preventDefault(); $('minterr').textContent = '';
+    const line = $('line').value.trim(); if (!line) return;
+    $('mintb').disabled = true;
+    try {
+      const page = location.origin + location.pathname;
+      const m = await post('/api/mint', {page, line, ttl_s: 600});
+      history.replaceState(null, '', '#' + m.link.split('#')[1]);
+      const [seed64, chain64] = m.link.split('#g=')[1].split('.');
+      K = {key: await keyFromSeed(unb64u(seed64)), chain_hex: hex(unb64u(chain64)), line: m.line, fp: m.fingerprint, root: m.root, cal: m.cal, not_after: m.not_after, used: false};
+      K.last_chain = K.chain_hex;
+      $('k-fp').textContent = `${m.fingerprint} · ${K.chain_hex.length / 2} bytes · 2 links`;
+      $('k-holder').textContent = m.browser_key;
+      $('k-line').textContent = m.line;
+      $('k-uses').textContent = '1';
+      $('keyinfo').hidden = false; $('downloads').hidden = false;
+      document.querySelectorAll('.try').forEach(b => { b.classList.remove('yes', 'no'); });
+      fmtLeft(); renderCal(m.cal); enableTries();
+      $('verdict').className = 'verdict'; $('verdict').innerHTML = '<span class="tag">ready</span>Your key is in this tab only. Try to widen it.';
+      $('trace').innerHTML = ''; $('cal-hit').textContent = 'no clause hit yet';
+    } catch (e) { $('minterr').textContent = e.message; }
+    $('mintb').disabled = false;
+  };
+
+  document.querySelectorAll('.try').forEach(b => b.onclick = async () => {
+    if (!K) return;
+    const a = b.dataset.a;
+    document.querySelectorAll('.try').forEach(x => x.disabled = true);
+    $('verdict').className = 'verdict'; $('verdict').innerHTML = '<span class="tag">checking</span>Signing with your key and asking the verifier…';
+    try {
+      const p = await post('/api/prepare', {attempt: a, chain_hex: K.chain_hex, line: K.line});
+      const o = await post('/api/finish', {draft: p.draft, sig_hex: await sign(unhex(p.sign_hex))});
+      K.last_chain = o.chain_hex; K.cal_shown = o.cal;
+      if (o.allowed && a === 'append') { K.used = true; $('k-uses').textContent = '0'; }
+      b.classList.remove('yes', 'no'); b.classList.add(o.allowed ? 'yes' : 'no');
+      b.querySelector('em').textContent = o.allowed ? 'allowed' : 'refused';
+      const v = $('verdict');
+      v.className = 'verdict ' + (o.allowed ? 'yes' : 'no');
+      v.innerHTML = `<span class="tag">${o.allowed ? 'allowed' : 'refused by ' + esc(o.by)}</span>${esc(o.allowed ? 'Your line is on the board, signed with chain ' + o.entry.fingerprint + '.' : o.error)}` +
+        `<small>${esc(o.asks)}</small>` + (o.minter ? `<small>Minter first: ${esc(o.minter)}. Signed by hand anyway, the verifier refuses it too.</small>` : '');
+      $('trace').innerHTML = o.trace.map(c => `<li><span class="${c.ok ? 'ok' : 'fail'}">${c.ok ? 'ok' : 'FAIL'}</span><span>${esc(c.check)}<br><span class="d">${esc(c.detail)}</span></span></li>`).join('');
+      const progLine = o.allowed ? (o.cal.clauses.find(c => c.id === 'program.op') || {}).line : o.clause_line;
+      renderCal(o.cal, progLine, o.allowed ? 'pass' : 'hit');
+      $('cal-hit').textContent = o.allowed ? 'allowed by program append-once' : `line ${o.clause_line} · ${o.clause}`;
+      loadBoard();
+    } catch (e) { $('verdict').className = 'verdict no'; $('verdict').innerHTML = `<span class="tag">error</span>${esc(e.message)}`; }
+    enableTries();
+  });
+
+  const save = (name, text) => { const u = URL.createObjectURL(new Blob([text], {type: 'text/plain'})); const a = document.createElement('a'); a.href = u; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(u), 1000); };
+  document.querySelectorAll('[data-dl]').forEach(b => b.onclick = () => {
+    if (!K) return;
+    const w = b.dataset.dl;
+    if (w === 'chain') save('chain.hex', (K.last_chain || K.chain_hex) + '\n');
+    if (w === 'cal') save('policy.cal', (K.cal_shown || K.cal).source);
+    if (w === 'root') save('root.pub', K.root + '\n');
+    $('cmd').textContent = `git clone https://github.com/ce-net/demo-one-pinned-action\ncd demo-one-pinned-action && cargo run -p cap-inspect -- chain.hex --root "$(cat root.pub)" --now ${Math.floor(Date.now() / 1000)} --cal`;
+  });
+
+  async function loadBoard() {
+    try {
+      const r = await (await fetch(API + '/api/board')).json();
+      $('b-count').textContent = r.count;
+      $('board').innerHTML = r.lines.length ? r.lines.map(e => `<li class="${K && e.fingerprint === K.fp ? 'mine' : ''}"><span class="l">${esc(e.line)}</span><span class="m">${esc(e.fingerprint)}<br>${new Date(e.at * 1000).toISOString().slice(5, 16).replace('T', ' ')}</span></li>`).join('')
+        : '<li><span class="l muted">No lines yet. Yours can be the first.</span><span class="m"></span></li>';
+    } catch (e) { $('board').innerHTML = '<li><span class="l muted">The board is not reachable right now.</span><span class="m"></span></li>'; }
+  }
+  loadBoard(); setInterval(loadBoard, 10000);
+
+  // ?tour=<line>&end=<attempt>: get a key and press every button in order, stopping after <end>.
+  const q = new URLSearchParams(location.search);
+  if (q.get('tour')) (async () => {
+    const order = ['other-op', 'unpinned', 'other-line', 'longer-ttl', 'wider', 'append', 'replay'];
+    const end = q.get('end') || 'replay';
+    $('line').value = q.get('tour');
+    $('mintf').requestSubmit();
+    const until = async f => { for (let i = 0; i < 100 && !f(); i++) await new Promise(r => setTimeout(r, 100)); };
+    await until(() => K);
+    for (const a of order) {
+      const b = document.querySelector(`.try[data-a="${a}"]`);
+      await until(() => !b.disabled); b.click();
+      await until(() => b.classList.contains('yes') || b.classList.contains('no'));
+      if (a === end) break;
+    }
+    document.body.dataset.tour = 'done';
+  })();
+})();
+</script>
+</body>
+</html>

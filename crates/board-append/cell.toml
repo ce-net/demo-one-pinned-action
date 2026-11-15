@@ -1,0 +1,8 @@
+[cell]
+api = "board.append"
+major = 1
+summary = "A public board: one line per capability use, behind a cap v3 gate (authorize_v3 + counted-use burn log)."
+crate = "board-append"
+api_crate = "board-append-api"
+license = "Apache-2.0"
+ops = ["Append"]

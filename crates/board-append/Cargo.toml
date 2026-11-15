@@ -1,0 +1,13 @@
+[package]
+name = "board-append"
+description = "board.append@1: a public board that accepts one line per capability use, behind a cap v3 gate."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+board-append-api = { path = "../board-append-api" }
+ce-net-proto.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
