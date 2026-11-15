@@ -1,0 +1,16 @@
+[package]
+name = "cap-inspect"
+description = "cap.inspect@1: decode a cap v3 chain, render it as CAL, run it through the verifier with a trace, and name the CAL clause behind a refusal."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ce-net-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+hex.workspace = true
+
+[[bin]]
+name = "cap-inspect"
+path = "src/bin/cap-inspect.rs"

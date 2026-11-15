@@ -1,0 +1,19 @@
+[package]
+name = "one-action-door"
+description = "The one-pinned-action demo door: Mint (the wire.ws-door Mint shape, minting a one-action cap v3 chain), the six attempts, the board and the page."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+board-append-api = { path = "../board-append-api" }
+board-append = { path = "../board-append" }
+cap-inspect = { path = "../cap-inspect" }
+ce-net-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
+base64 = "0.22"
+axum = { version = "0.7", default-features = false, features = ["http1", "json", "tokio"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync"] }

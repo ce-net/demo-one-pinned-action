@@ -1,0 +1,7 @@
+[cell]
+api = "cap.inspect"
+major = 1
+summary = "Decode a cap v3 chain, render it as CAL, trace the verifier's checks, and name the CAL clause behind a refusal."
+crate = "cap-inspect"
+license = "Apache-2.0"
+ops = ["Inspect", "Cal", "Trace", "Blame"]
