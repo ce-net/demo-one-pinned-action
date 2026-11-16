@@ -9,3 +9,16 @@ ops = ["Inspect", "Cal", "Trace", "Blame"]
 
 [limits]
 disk_bytes = "64M"
+
+[stamp]
+id = "cell:cap.inspect"
+kind = "cell"
+path = "crates/cap-inspect/cell.toml"
+updated_at = 2026-11-15T10:04:40Z
+version = "0.1.0"
+access = "public"
+canonical_of = []
+duplicate_of = ""
+owner = "foreman/lead"
+source_of_truth = "https://github.com/ce-net/demo-one-pinned-action"
+stale_after = 180
